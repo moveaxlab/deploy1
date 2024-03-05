@@ -1,6 +1,6 @@
 # deploy1
 
-`deploy1` is a tool to build and deploy docker images, with strong opinions on image tags.
+`deploy1` (pronounced /dəplɔɪɒnɛ/) is a tool to build and deploy docker images, with strong opinions on image tags.
 
 ## Requirements
 
