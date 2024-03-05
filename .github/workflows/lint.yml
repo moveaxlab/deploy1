@@ -1,0 +1,20 @@
+name: lint
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: jdx/mise-action@v2
+      with:
+        experimental: true
+    - run: go vet ./...
+    - run: ./lint.sh
+    - run: go test ./...
+
