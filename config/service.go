@@ -19,6 +19,10 @@ func GetImageName(service Service) ImageName {
 	return Config.Services[service].ImageName
 }
 
+func GetImageTagParameter(service Service) string {
+	return Config.Services[service].ImageTagParameter
+}
+
 func GetAllServices() []Service {
 	res := make([]Service, 0, len(Config.Services))
 

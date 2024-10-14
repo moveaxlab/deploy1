@@ -66,7 +66,7 @@ var buildCmd = &cobra.Command{
 
 		if buildConfig.deploy {
 			for _, service := range services {
-				err = argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env)
+				err = argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service))
 				checkNoError(err)
 			}
 		}
