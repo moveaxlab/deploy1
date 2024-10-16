@@ -44,11 +44,12 @@ type ScriptsConfiguration struct {
 }
 
 type ServiceConfiguration struct {
-	Directory   string               `json:"directory"`
-	ServiceName ServiceName          `json:"service_name"`
-	ImageName   ImageName            `json:"image_name"`
-	Scripts     ScriptsConfiguration `json:"scripts"`
-	Dockerfile  string               `json:"dockerfile"`
+	Directory         string               `json:"directory"`
+	ServiceName       ServiceName          `json:"service_name"`
+	ImageName         ImageName            `json:"image_name"`
+	Scripts           ScriptsConfiguration `json:"scripts"`
+	Dockerfile        string               `json:"dockerfile"`
+	ImageTagParameter string               `json:"image_tag_parameter"`
 }
 
 type ArgoEnvironmentConfiguration struct {

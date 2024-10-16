@@ -17,11 +17,11 @@ type resourceGroup string
 type resourceKind string
 
 const (
-	imageTagParameter   parameterName = "image.tag"
-	defaultImageTag                   = "latest"
-	deploymentResource  resourceKind  = "Deployment"
-	statefulSetResource resourceKind  = "StatefulSet"
-	appResourceGroup    resourceGroup = "apps"
+	defaultImageTagParameter parameterName = "image.tag"
+	defaultImageTag                        = "latest"
+	deploymentResource       resourceKind  = "Deployment"
+	statefulSetResource      resourceKind  = "StatefulSet"
+	appResourceGroup         resourceGroup = "apps"
 )
 
 type argoParameters struct {
@@ -60,7 +60,7 @@ type serviceInfo struct {
 	resourceKind    resourceKind
 }
 
-func getServiceInfo(service config.ServiceName, env config.Environment) (*serviceInfo, error) {
+func getServiceInfo(service config.ServiceName, env config.Environment, customImageTagParameter string) (*serviceInfo, error) {
 	cmd := exec.Command(
 		"argocd",
 		"--grpc-web",
@@ -93,6 +93,11 @@ func getServiceInfo(service config.ServiceName, env config.Environment) (*servic
 	parameters := response.Spec.Source.Helm.Parameters
 
 	imageTag := defaultImageTag
+	imageTagParameter := defaultImageTagParameter
+
+	if customImageTagParameter != "" {
+		imageTagParameter = parameterName(customImageTagParameter)
+	}
 
 	for _, param := range parameters {
 		if param.Name == imageTagParameter {
@@ -149,7 +154,11 @@ func restart(service config.ServiceName, env config.Environment, kind resourceKi
 	return nil
 }
 
-func deploy(service config.ServiceName, tag string, env config.Environment) error {
+func deploy(service config.ServiceName, tag string, env config.Environment, customImageTagParameter string) error {
+	imageTagParameter := defaultImageTagParameter
+	if customImageTagParameter != "" {
+		imageTagParameter = parameterName(customImageTagParameter)
+	}
 	cmd := exec.Command(
 		"argocd",
 		"--grpc-web",
@@ -175,9 +184,9 @@ func deploy(service config.ServiceName, tag string, env config.Environment) erro
 	return nil
 }
 
-func Deploy(service config.ServiceName, tag string, env config.Environment) error {
+func Deploy(service config.ServiceName, tag string, env config.Environment, imageTagParameter string) error {
 	log.Infof("retrieving current tag for service %s from argo...", service)
-	serviceInfo, err := getServiceInfo(service, env)
+	serviceInfo, err := getServiceInfo(service, env, imageTagParameter)
 	if err != nil {
 		return fmt.Errorf("failed to get current tag of service %s: %w", service, err)
 	}
@@ -193,7 +202,7 @@ func Deploy(service config.ServiceName, tag string, env config.Environment) erro
 		log.Infof("service %s restarted with tag %s", service, tag)
 	} else {
 		log.Infof("current tag and given tag differ, overriding...")
-		err = deploy(service, tag, env)
+		err = deploy(service, tag, env, imageTagParameter)
 		if err != nil {
 			return fmt.Errorf("deploy of service %s failed: %w", service, err)
 		}

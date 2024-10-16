@@ -91,6 +91,7 @@ For each service you must provide the following values:
 - `dockerfile`: (optional) the path to dockerfile to use for the service, relative to the `directory` of the service
 - `scripts`: (optional) an object containing global scripts override. It is possibile to override only the bundle script
   - `bundle` is ran right before the docker build, and receives in input the service name. It is executed instead of global bundle script. The path is relative to the service directory and it is executed in the service directory
+- `image_tag_parameter`: (optional) it's possible to override the argo parameter for the image tag (default is `image.tag`)
 
 If all your services use the same dockerfile, you can specify it inside the `docker` key, as `dockerfile`.
 This must be a path relative to the root directory of your project.
@@ -98,6 +99,7 @@ This must be a path relative to the root directory of your project.
 ### Complete configuration example
 
 A complete configuration looks something like this:
+
 ```json
 {
   "default_environment": "dev",
@@ -131,6 +133,16 @@ A complete configuration looks something like this:
       "directory": "./services/street-corners/",
       "service_name": "street-corners",
       "image_name": "street-corners"
+    },
+    "my-other-service": {
+      "directory": "./services/my-other-service/",
+      "service_name": "my-other-service",
+      "image_name": "my-other-service",
+      "dockerfile": "./my-other-service.Dockerfile",
+      "scripts": {
+        "bundle": "./my-other-service-bundle.sh"
+      },
+      "image_tag_parameter": "image.myservice.tag"
     }
   }
 }
