@@ -78,10 +78,11 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 	}
 	log.Debugf("running command %s", cmd.String())
 
+	cmd.Stderr = output.ErrLogger{}
+	cmd.Stdout = output.OutLogger{}
 	res, err := cmd.Output()
-	out, _ := cmd.CombinedOutput()
+
 	if err != nil {
-		log.Infof("Output of command %s", string(out))
 		return nil, fmt.Errorf("failed to get current tag: %w", err)
 	}
 	log.Debugf("output:\n%s", string(res))
