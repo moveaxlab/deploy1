@@ -70,6 +70,7 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 		"show-params",
 		"-o", "json",
 		"--insecure",
+		"--plaintext",
 	)
 	cmd.Env = []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
@@ -138,6 +139,7 @@ func restart(service config.ServiceName, env config.Environment, kind resourceKi
 		"--kind", string(kind),
 		"--all",
 		"--insecure",
+		"--plaintext",
 	)
 	cmd.Env = []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
@@ -169,6 +171,7 @@ func deploy(service config.ServiceName, tag string, env config.Environment, cust
 		string(service),
 		"--helm-set-string", fmt.Sprintf("%s=%s", imageTagParameter, tag),
 		"--insecure",
+		"--plaintext",
 	)
 	cmd.Env = []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
