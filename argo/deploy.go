@@ -77,21 +77,16 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 	cmd.Env = []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
 		fmt.Sprintf("ARGOCD_SERVER=%s", config.Config.Argo.Environments[env].ServerName),
+		fmt.Sprintf("HTTP_PROXY=%s", os.Getenv("HTTP_PROXY")),
 	}
 
 	var out, errb bytes.Buffer
-
-	cmd.Stderr = &out
-	cmd.Stdout = &errb
 
 	log.Debugf("running command  %s", cmd.String())
 
 	res, err := cmd.Output()
 
 	log.Debugf("output:\n%s", string(res))
-
-	log.Debugf("Stdout %s", out.String())
-	log.Debugf("Stderr %s", errb.String())
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current tag: %w", err)
