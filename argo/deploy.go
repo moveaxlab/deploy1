@@ -1,6 +1,7 @@
 package argo
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/moveaxlab/deploy1/config"
@@ -78,14 +79,20 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 		fmt.Sprintf("ARGOCD_SERVER=%s", config.Config.Argo.Environments[env].ServerName),
 	}
 
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	var out, errb bytes.Buffer
 
-	log.Debugf("running command %s", cmd.String())
+	cmd.Stderr = &out
+	cmd.Stdout = &errb
+
+	log.Debugf("running command  %s", cmd.String())
 
 	res, err := cmd.Output()
 
 	log.Debugf("output:\n%s", string(res))
+
+	log.Debugf("Stdout %s", out.String())
+	log.Debugf("Stderr %s", errb.String())
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current tag: %w", err)
 	}
