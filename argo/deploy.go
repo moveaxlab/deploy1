@@ -71,6 +71,7 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 		"-o", "json",
 		"--insecure",
 		"--plaintext",
+		"--loglevel=debug",
 	)
 	cmd.Env = []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
@@ -78,8 +79,6 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 	}
 	log.Debugf("running command %s", cmd.String())
 
-	cmd.Stderr = output.ErrLogger{}
-	cmd.Stdout = output.OutLogger{}
 	res, err := cmd.Output()
 
 	if err != nil {
