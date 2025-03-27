@@ -69,14 +69,16 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 		string(service),
 		"show-params",
 		"-o", "json",
-		"--insecure",
 		"--plaintext",
 		"--loglevel=debug",
 	)
-	cmd.Env = []string{
+
+	customEnv := []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
 		fmt.Sprintf("ARGOCD_SERVER=%s", config.Config.Argo.Environments[env].ServerName),
 	}
+
+	cmd.Env = append(os.Environ(), customEnv...)
 
 	log.Debugf("ENV var ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable))
 	log.Debugf("ENV var HTTP_PROXY=%s", os.Getenv("HTTP_PROXY"))
@@ -87,7 +89,7 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 
 	log.Debugf("running command  %s", cmd.String())
 
-	res, err := cmd.Output()
+	res, err := cmd.CombinedOutput()
 
 	log.Debugf("output:\n%s", string(res))
 
