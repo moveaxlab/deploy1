@@ -1,7 +1,6 @@
 package argo
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/moveaxlab/deploy1/config"
@@ -79,8 +78,6 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 		fmt.Sprintf("ARGOCD_SERVER=%s", config.Config.Argo.Environments[env].ServerName),
 		fmt.Sprintf("HTTP_PROXY=%s", os.Getenv("HTTP_PROXY")),
 	}
-
-	var out, errb bytes.Buffer
 
 	log.Debugf("running command  %s", cmd.String())
 
