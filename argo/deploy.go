@@ -77,6 +77,10 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
 		fmt.Sprintf("ARGOCD_SERVER=%s", config.Config.Argo.Environments[env].ServerName),
 	}
+
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+
 	log.Debugf("running command %s", cmd.String())
 
 	res, err := cmd.Output()
