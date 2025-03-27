@@ -81,10 +81,10 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 
 	res, err := cmd.Output()
 
+	log.Debugf("output:\n%s", string(res))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current tag: %w", err)
 	}
-	log.Debugf("output:\n%s", string(res))
 
 	var response argoParams
 
