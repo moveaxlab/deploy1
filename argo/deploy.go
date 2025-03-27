@@ -80,16 +80,9 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 
 	cmd.Env = append(os.Environ(), customEnv...)
 
-	log.Debugf("ENV var ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable))
-	log.Debugf("ENV var HTTP_PROXY=%s", os.Getenv("HTTP_PROXY"))
-
-	for _, s := range cmd.Env {
-		log.Debugf("ENV var %s", s)
-	}
-
 	log.Debugf("running command  %s", cmd.String())
 
-	res, err := cmd.CombinedOutput()
+	res, err := cmd.Output()
 
 	log.Debugf("output:\n%s", string(res))
 
@@ -153,10 +146,12 @@ func restart(service config.ServiceName, env config.Environment, kind resourceKi
 		"--insecure",
 		"--plaintext",
 	)
-	cmd.Env = []string{
+	customEnv := []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
 		fmt.Sprintf("ARGOCD_SERVER=%s", config.Config.Argo.Environments[env].ServerName),
 	}
+
+	cmd.Env = append(os.Environ(), customEnv...)
 	cmd.Stdout = output.OutLogger{}
 	cmd.Stderr = output.ErrLogger{}
 	log.Debugf("running command %s", cmd.String())
@@ -185,10 +180,13 @@ func deploy(service config.ServiceName, tag string, env config.Environment, cust
 		"--insecure",
 		"--plaintext",
 	)
-	cmd.Env = []string{
+	customEnv := []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
 		fmt.Sprintf("ARGOCD_SERVER=%s", config.Config.Argo.Environments[env].ServerName),
 	}
+
+	cmd.Env = append(os.Environ(), customEnv...)
+
 	cmd.Stdout = output.OutLogger{}
 	cmd.Stderr = output.ErrLogger{}
 	log.Debugf("running command %s", cmd.String())
