@@ -61,27 +61,35 @@ type serviceInfo struct {
 }
 
 func getServiceInfo(service config.ServiceName, env config.Environment, customImageTagParameter string) (*serviceInfo, error) {
-	cmd := exec.Command(
-		"argocd",
+	extraParams := config.Config.Argo.Environments[env].ArgoExtraParams
+
+	cmdParams := append([]string{
 		"--grpc-web",
 		"app",
 		"get",
 		string(service),
 		"show-params",
 		"-o", "json",
+	},
+		extraParams...)
+
+	cmd := exec.Command(
+		"argocd",
+		cmdParams...,
 	)
-	cmd.Env = []string{
+
+	customEnv := []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
 		fmt.Sprintf("ARGOCD_SERVER=%s", config.Config.Argo.Environments[env].ServerName),
 	}
-	log.Debugf("running command %s", cmd.String())
+
+	cmd.Env = append(os.Environ(), customEnv...)
 
 	res, err := cmd.Output()
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current tag: %w", err)
 	}
-	log.Debugf("output:\n%s", string(res))
 
 	var response argoParams
 
@@ -126,8 +134,9 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 }
 
 func restart(service config.ServiceName, env config.Environment, kind resourceKind) error {
-	cmd := exec.Command(
-		"argocd",
+	extraParams := config.Config.Argo.Environments[env].ArgoExtraParams
+
+	cmdParams := append([]string{
 		"--grpc-web",
 		"app",
 		"actions",
@@ -136,11 +145,19 @@ func restart(service config.ServiceName, env config.Environment, kind resourceKi
 		"restart",
 		"--kind", string(kind),
 		"--all",
+	},
+		extraParams...)
+
+	cmd := exec.Command(
+		"argocd",
+		cmdParams...,
 	)
-	cmd.Env = []string{
+	customEnv := []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
 		fmt.Sprintf("ARGOCD_SERVER=%s", config.Config.Argo.Environments[env].ServerName),
 	}
+
+	cmd.Env = append(os.Environ(), customEnv...)
 	cmd.Stdout = output.OutLogger{}
 	cmd.Stderr = output.ErrLogger{}
 	log.Debugf("running command %s", cmd.String())
@@ -159,18 +176,28 @@ func deploy(service config.ServiceName, tag string, env config.Environment, cust
 	if customImageTagParameter != "" {
 		imageTagParameter = parameterName(customImageTagParameter)
 	}
-	cmd := exec.Command(
-		"argocd",
+
+	extraParams := config.Config.Argo.Environments[env].ArgoExtraParams
+
+	cmdParams := append([]string{
 		"--grpc-web",
 		"app",
 		"set",
 		string(service),
 		"--helm-set-string", fmt.Sprintf("%s=%s", imageTagParameter, tag),
+	},
+		extraParams...)
+	cmd := exec.Command(
+		"argocd",
+		cmdParams...,
 	)
-	cmd.Env = []string{
+	customEnv := []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
 		fmt.Sprintf("ARGOCD_SERVER=%s", config.Config.Argo.Environments[env].ServerName),
 	}
+
+	cmd.Env = append(os.Environ(), customEnv...)
+
 	cmd.Stdout = output.OutLogger{}
 	cmd.Stderr = output.ErrLogger{}
 	log.Debugf("running command %s", cmd.String())

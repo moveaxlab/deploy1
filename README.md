@@ -108,7 +108,9 @@ A complete configuration looks something like this:
     "environments": {
       "dev": {
         "auth_token": "ARGOCD_AUTH_TOKEN_DEV",
-        "server": "argo.myproject.it"
+        "server": "argo.myproject.it",
+        "service_prefix": "my-prefix",
+        "argocli_extra_params": ["--extra", "--params"]
       }
     }
   },
