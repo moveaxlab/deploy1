@@ -53,9 +53,10 @@ type ServiceConfiguration struct {
 }
 
 type ArgoEnvironmentConfiguration struct {
-	AuthTokenEnvVariable string `json:"auth_token"`
-	ServerName           string `json:"server"`
-	ServicePrefix        string `json:"service_prefix"`
+	AuthTokenEnvVariable string   `json:"auth_token"`
+	ServerName           string   `json:"server"`
+	ServicePrefix        string   `json:"service_prefix"`
+	ArgoExtraParams      []string `json:"argocli_extra_params"`
 }
 
 type ArgoConfiguration struct {

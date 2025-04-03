@@ -61,16 +61,21 @@ type serviceInfo struct {
 }
 
 func getServiceInfo(service config.ServiceName, env config.Environment, customImageTagParameter string) (*serviceInfo, error) {
-	cmd := exec.Command(
-		"argocd",
+	extraParams := config.Config.Argo.Environments[env].ArgoExtraParams
+
+	cmdParams := append([]string{
 		"--grpc-web",
 		"app",
 		"get",
 		string(service),
 		"show-params",
 		"-o", "json",
-		"--plaintext",
-		"--loglevel=debug",
+	},
+		extraParams...)
+
+	cmd := exec.Command(
+		"argocd",
+		cmdParams...,
 	)
 
 	customEnv := []string{
@@ -133,8 +138,9 @@ func getServiceInfo(service config.ServiceName, env config.Environment, customIm
 }
 
 func restart(service config.ServiceName, env config.Environment, kind resourceKind) error {
-	cmd := exec.Command(
-		"argocd",
+	extraParams := config.Config.Argo.Environments[env].ArgoExtraParams
+
+	cmdParams := append([]string{
 		"--grpc-web",
 		"app",
 		"actions",
@@ -143,8 +149,12 @@ func restart(service config.ServiceName, env config.Environment, kind resourceKi
 		"restart",
 		"--kind", string(kind),
 		"--all",
-		"--insecure",
-		"--plaintext",
+	},
+		extraParams...)
+
+	cmd := exec.Command(
+		"argocd",
+		cmdParams...,
 	)
 	customEnv := []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
@@ -170,15 +180,20 @@ func deploy(service config.ServiceName, tag string, env config.Environment, cust
 	if customImageTagParameter != "" {
 		imageTagParameter = parameterName(customImageTagParameter)
 	}
-	cmd := exec.Command(
-		"argocd",
+
+	extraParams := config.Config.Argo.Environments[env].ArgoExtraParams
+
+	cmdParams := append([]string{
 		"--grpc-web",
 		"app",
 		"set",
 		string(service),
 		"--helm-set-string", fmt.Sprintf("%s=%s", imageTagParameter, tag),
-		"--insecure",
-		"--plaintext",
+	},
+		extraParams...)
+	cmd := exec.Command(
+		"argocd",
+		cmdParams...,
 	)
 	customEnv := []string{
 		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
