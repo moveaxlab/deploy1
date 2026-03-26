@@ -34,7 +34,7 @@ var deployAllCmd = &cobra.Command{
 					continue
 				}
 			}
-			err = argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service))
+			err = argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service), deployFlags.wait)
 			checkNoError(err)
 		}
 	},

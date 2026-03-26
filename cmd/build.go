@@ -34,6 +34,9 @@ var buildCmd = &cobra.Command{
 		buildConfig, err := getBuildFlags(cmd)
 		checkNoError(err)
 
+		deployFlags, err := getDeployFlags(cmd)
+		checkNoError(err)
+
 		actualTag, err := tag.GetTag(baseConfig.tag)
 		checkNoError(err)
 
@@ -66,7 +69,7 @@ var buildCmd = &cobra.Command{
 
 		if buildConfig.deploy {
 			for _, service := range services {
-				err = argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service))
+				err = argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service), deployFlags.wait)
 				checkNoError(err)
 			}
 		}
@@ -78,4 +81,5 @@ func init() {
 	addDebugFlag(buildCmd)
 	addBaseFlags(buildCmd)
 	addBuildFlags(buildCmd)
+	addDeployFlags(buildCmd)
 }
