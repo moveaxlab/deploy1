@@ -78,6 +78,7 @@ var Config Configuration
 func init() {
 	log.SetFormatter(&log.TextFormatter{
 		PadLevelText: true,
+		ForceColors:  true,
 	})
 	contents, err := ioutil.ReadFile("./deploy1.json")
 	if err != nil {
