@@ -235,6 +235,20 @@ If you don't specify an environment, the `default_environment` will be used.
 
 You can also deploy all services with `deploy1 deploy-all`.
 
+#### Waiting for deployment completion
+
+You can wait for the service to be fully deployed (synced and healthy) using the `--wait` flag:
+
+```bash
+deploy1 deploy --wait <service 1> <service 2> ...
+```
+
+When the `--wait` flag is used, deploy1 will:
+- Deploy the service as usual
+- Wait for the service to be completely synced and healthy in ArgoCD
+- Report when the service is ready
+
+It can also be used in combination with deploy flag when doing a build and deploy in one shot.
 ## Extras
 
 There's an attempt at support for shell completion.
