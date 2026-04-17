@@ -3,11 +3,12 @@ package argo
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"os/exec"
+
 	"github.com/moveaxlab/deploy1/config"
 	"github.com/moveaxlab/deploy1/output"
 	log "github.com/sirupsen/logrus"
-	"os"
-	"os/exec"
 )
 
 type parameterName string
@@ -211,7 +212,43 @@ func deploy(service config.ServiceName, tag string, env config.Environment, cust
 	return nil
 }
 
-func Deploy(service config.ServiceName, tag string, env config.Environment, imageTagParameter string) error {
+func wait(service config.ServiceName, env config.Environment) error {
+	extraParams := config.Config.Argo.Environments[env].ArgoExtraParams
+
+	cmdParams := append([]string{
+		"--grpc-web",
+		"app",
+		"wait",
+		string(service),
+		"--health",
+		"--sync",
+	},
+		extraParams...)
+
+	cmd := exec.Command(
+		"argocd",
+		cmdParams...,
+	)
+	customEnv := []string{
+		fmt.Sprintf("ARGOCD_AUTH_TOKEN=%s", os.Getenv(config.Config.Argo.Environments[env].AuthTokenEnvVariable)),
+		fmt.Sprintf("ARGOCD_SERVER=%s", config.Config.Argo.Environments[env].ServerName),
+	}
+
+	cmd.Env = append(os.Environ(), customEnv...)
+	cmd.Stdout = output.OutLogger{}
+	cmd.Stderr = output.ErrLogger{}
+	log.Debugf("running command %s", cmd.String())
+
+	err := cmd.Run()
+
+	if err != nil {
+		return fmt.Errorf("failed to wait for service %s: %w", service, err)
+	}
+
+	return nil
+}
+
+func Deploy(service config.ServiceName, tag string, env config.Environment, imageTagParameter string, shouldWait bool) error {
 	log.Infof("retrieving current tag for service %s from argo...", service)
 	serviceInfo, err := getServiceInfo(service, env, imageTagParameter)
 	if err != nil {
@@ -234,6 +271,15 @@ func Deploy(service config.ServiceName, tag string, env config.Environment, imag
 			return fmt.Errorf("deploy of service %s failed: %w", service, err)
 		}
 		log.Infof("override of service %s to tag %s complete", service, tag)
+	}
+
+	if shouldWait {
+		log.Infof("waiting for service %s to complete deployment...", service)
+		err = wait(service, env)
+		if err != nil {
+			return err
+		}
+		log.Infof("service %s is now synced and healthy", service)
 	}
 
 	return nil

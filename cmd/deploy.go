@@ -7,6 +7,7 @@ import (
 	"github.com/moveaxlab/deploy1/tag"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 var deployCmd = &cobra.Command{
@@ -30,18 +31,26 @@ var deployCmd = &cobra.Command{
 		actualTag, err := tag.GetTag(baseConfig.tag)
 		checkNoError(err)
 
+		var g errgroup.Group
 		for _, service := range services {
-			if !deployFlags.noImageTagCheck {
-				tagExists, err := docker.TagExists(service, baseConfig.env, actualTag)
-				checkNoError(err)
-				if !tagExists {
-					log.Infof("skipping deployment of service %s: tag %s does not exist", service, actualTag)
-					continue
+			service := service
+			g.Go(func() error {
+
+				if !deployFlags.noImageTagCheck {
+					tagExists, err := docker.TagExists(service, baseConfig.env, actualTag)
+					if err != nil {
+						return err
+					}
+					if !tagExists {
+						log.Infof("skipping deployment of service %s: tag %s does not exist", service, actualTag)
+						return nil
+					}
 				}
-			}
-			err = argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service))
-			checkNoError(err)
+				return argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service), deployFlags.wait)
+			})
 		}
+
+		checkNoError(g.Wait())
 	},
 }
 

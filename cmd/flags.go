@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/moveaxlab/deploy1/config"
 	"github.com/moveaxlab/deploy1/tag"
 	log "github.com/sirupsen/logrus"
@@ -17,6 +18,7 @@ const (
 	noBundleFlag    = "no-bundle"
 	noCacheFlag     = "no-cache"
 	noImageTagCheck = "no-image-tag-check"
+	waitFlag        = "wait"
 )
 
 func addDebugFlag(cmd *cobra.Command) {
@@ -147,10 +149,17 @@ func addDeployFlags(cmd *cobra.Command) {
 		false,
 		"skip image tag check before deployment (use at your own risk)",
 	)
+
+	cmd.Flags().Bool(
+		waitFlag,
+		false,
+		"wait for service to be fully deployed (synced and healthy)",
+	)
 }
 
 type deployFlags struct {
 	noImageTagCheck bool
+	wait            bool
 }
 
 func getDeployFlags(cmd *cobra.Command) (*deployFlags, error) {
@@ -159,7 +168,13 @@ func getDeployFlags(cmd *cobra.Command) (*deployFlags, error) {
 		return nil, fmt.Errorf("invalid image tag check flag: %w", err)
 	}
 
+	wait, err := cmd.Flags().GetBool(waitFlag)
+	if err != nil {
+		return nil, fmt.Errorf("invalid wait flag: %w", err)
+	}
+
 	return &deployFlags{
 		noImageTagCheck: noImageTagCheck,
+		wait:            wait,
 	}, nil
 }

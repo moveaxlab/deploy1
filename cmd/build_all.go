@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"golang.org/x/sync/errgroup"
+
 	"github.com/moveaxlab/deploy1/argo"
 	"github.com/moveaxlab/deploy1/bundle"
 	"github.com/moveaxlab/deploy1/config"
@@ -21,6 +23,9 @@ var buildAllCmd = &cobra.Command{
 		checkNoError(err)
 
 		buildConfig, err := getBuildFlags(cmd)
+		checkNoError(err)
+
+		deployFlags, err := getDeployFlags(cmd)
 		checkNoError(err)
 
 		actualTag, err := tag.GetTag(baseConfig.tag)
@@ -51,10 +56,14 @@ var buildAllCmd = &cobra.Command{
 		}
 
 		if buildConfig.deploy {
+			var g errgroup.Group
 			for _, service := range config.GetAllServices() {
-				err = argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service))
-				checkNoError(err)
+				service := service
+				g.Go(func() error {
+					return argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service), deployFlags.wait)
+				})
 			}
+			checkNoError(g.Wait())
 		}
 	},
 }
@@ -64,4 +73,5 @@ func init() {
 	addDebugFlag(buildAllCmd)
 	addBaseFlags(buildAllCmd)
 	addBuildFlags(buildAllCmd)
+	addDeployFlags(buildAllCmd)
 }
