@@ -8,6 +8,7 @@ import (
 	"github.com/moveaxlab/deploy1/tag"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 func checkNoError(err error) {
@@ -68,10 +69,14 @@ var buildCmd = &cobra.Command{
 		}
 
 		if buildConfig.deploy {
+			var g errgroup.Group
 			for _, service := range services {
-				err = argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service), deployFlags.wait)
-				checkNoError(err)
+				service := service
+				g.Go(func() error {
+					return argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service), deployFlags.wait)
+				})
 			}
+			checkNoError(g.Wait())
 		}
 	},
 }

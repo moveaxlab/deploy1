@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"golang.org/x/sync/errgroup"
+
 	"github.com/moveaxlab/deploy1/argo"
 	"github.com/moveaxlab/deploy1/config"
 	"github.com/moveaxlab/deploy1/docker"
@@ -25,18 +27,25 @@ var deployAllCmd = &cobra.Command{
 		deployFlags, err := getDeployFlags(cmd)
 		checkNoError(err)
 
+		var g errgroup.Group
 		for _, service := range config.GetAllServices() {
-			if !deployFlags.noImageTagCheck {
-				tagExists, err := docker.TagExists(service, baseConfig.env, actualTag)
-				checkNoError(err)
-				if !tagExists {
-					log.Infof("skipping deployment of service %s: tag %s does not exist", service, actualTag)
-					continue
+			service := service
+			g.Go(func() error {
+				if !deployFlags.noImageTagCheck {
+					tagExists, err := docker.TagExists(service, baseConfig.env, actualTag)
+					if err != nil {
+						return err
+					}
+					if !tagExists {
+						log.Infof("skipping deployment of service %s: tag %s does not exist", service, actualTag)
+						return nil
+					}
 				}
-			}
-			err = argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service), deployFlags.wait)
-			checkNoError(err)
+				return argo.Deploy(config.GetServiceName(service, baseConfig.env), actualTag, baseConfig.env, config.GetImageTagParameter(service), deployFlags.wait)
+			})
 		}
+
+		checkNoError(g.Wait())
 	},
 }
 
