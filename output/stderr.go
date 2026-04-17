@@ -9,7 +9,7 @@ import (
 type ErrLogger struct{}
 
 func (o ErrLogger) Write(p []byte) (n int, err error) {
-	msg := string(p)
+	msg := strings.ToLower(string(p))
 	if strings.Contains(msg, "error") || strings.Contains(msg, "failed") || strings.Contains(msg, "fatal") {
 		logrus.Error(msg)
 	} else {
