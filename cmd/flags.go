@@ -143,6 +143,42 @@ func getBuildFlags(cmd *cobra.Command) (*buildArgs, error) {
 	}, nil
 }
 
+func addEnvFlag(cmd *cobra.Command) {
+	cmd.Flags().String(
+		envFlag,
+		string(config.Config.DefaultEnvironment),
+		"environment for deploy",
+	)
+
+	_ = cmd.RegisterFlagCompletionFunc(envFlag, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return config.AutocompleteEnvironment(toComplete), cobra.ShellCompDirectiveDefault
+	})
+}
+
+func getEnvFlag(cmd *cobra.Command) (config.Environment, error) {
+	rawEnv, err := cmd.Flags().GetString(envFlag)
+	if err != nil {
+		return "", fmt.Errorf("invalid env: %w", err)
+	}
+	return config.ValidateEnvironment(rawEnv)
+}
+
+func addWaitFlag(cmd *cobra.Command) {
+	cmd.Flags().Bool(
+		waitFlag,
+		false,
+		"wait for service to be fully deployed (synced and healthy)",
+	)
+}
+
+func getWaitFlag(cmd *cobra.Command) (bool, error) {
+	wait, err := cmd.Flags().GetBool(waitFlag)
+	if err != nil {
+		return false, fmt.Errorf("invalid wait flag: %w", err)
+	}
+	return wait, nil
+}
+
 func addDeployFlags(cmd *cobra.Command) {
 	cmd.Flags().Bool(
 		noImageTagCheck,
