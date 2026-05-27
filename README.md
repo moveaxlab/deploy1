@@ -249,6 +249,19 @@ When the `--wait` flag is used, deploy1 will:
 - Report when the service is ready
 
 It can also be used in combination with deploy flag when doing a build and deploy in one shot.
+
+### Resetting image tag overrides
+
+When you deploy a service with a custom tag, ArgoCD stores that tag as a Helm override.
+To remove the override and revert one or more services to their default tag, use:
+
+```bash
+deploy1 reset <service 1> <service 2> ...
+```
+
+You can specify which environment to reset using the `--env` flag.
+If you don't specify an environment, the `default_environment` will be used.
+
 ## Extras
 
 There's an attempt at support for shell completion.
