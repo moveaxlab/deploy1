@@ -20,17 +20,14 @@ var resetCmd = &cobra.Command{
 		services, err := config.ValidateServiceName(args)
 		checkNoError(err)
 
-		env, err := getEnvFlag(cmd)
-		checkNoError(err)
-
-		shouldWait, err := getWaitFlag(cmd)
+		resetConfig, err := getResetFlags(cmd)
 		checkNoError(err)
 
 		var g errgroup.Group
 		for _, service := range services {
 			service := service
 			g.Go(func() error {
-				return argo.Reset(config.GetServiceName(service, env), env, config.GetImageTagParameter(service), shouldWait)
+				return argo.Reset(config.GetServiceName(service, resetConfig.env), resetConfig.env, config.GetImageTagParameter(service), resetConfig.wait)
 			})
 		}
 
@@ -41,6 +38,5 @@ var resetCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(resetCmd)
 	addDebugFlag(resetCmd)
-	addEnvFlag(resetCmd)
-	addWaitFlag(resetCmd)
+	addResetFlags(resetCmd)
 }
