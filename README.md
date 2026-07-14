@@ -220,6 +220,21 @@ The `--no-cache` flag adds the `--no-cache` flag to the `docker build` command:
 deploy1 build --no-cache <service 1> ...
 ```
 
+#### Extra docker build flags
+
+You can pass extra flags directly to `docker build` with `--extra-docker-build-flags`:
+
+```bash
+deploy1 build --extra-docker-build-flags "--target=build-stage --label=foo=bar --squash" <service 1> ...
+```
+
+Flags are space-separated and passed through to `docker build` as-is, so each token
+must already be in the form `docker build` expects (e.g. `--flag=value`); a token
+can't itself contain a space. This is the same convention used by `--build-args`.
+
+For example, if your Dockerfile has multiple stages, you can stop the build at a
+specific stage with `--extra-docker-build-flags "--target=<stage name>"`.
+
 ### Deploying a service
 
 You can deploy one or more services with:

@@ -10,15 +10,16 @@ import (
 )
 
 const (
-	debugFlag       = "debug"
-	tagFlag         = "tag"
-	envFlag         = "env"
-	buildArgsFlag   = "build-args"
-	deployFlag      = "deploy"
-	noBundleFlag    = "no-bundle"
-	noCacheFlag     = "no-cache"
-	noImageTagCheck = "no-image-tag-check"
-	waitFlag        = "wait"
+	debugFlag                 = "debug"
+	tagFlag                   = "tag"
+	envFlag                   = "env"
+	buildArgsFlag             = "build-args"
+	extraDockerBuildFlagsFlag = "extra-docker-build-flags"
+	deployFlag                = "deploy"
+	noBundleFlag              = "no-bundle"
+	noCacheFlag               = "no-cache"
+	noImageTagCheck           = "no-image-tag-check"
+	waitFlag                  = "wait"
 )
 
 func addDebugFlag(cmd *cobra.Command) {
@@ -88,6 +89,12 @@ func addBuildFlags(cmd *cobra.Command) {
 		"custom build arguments for docker build",
 	)
 
+	cmd.Flags().String(
+		extraDockerBuildFlagsFlag,
+		"",
+		"extra flags to pass to docker build, space-separated (e.g. \"--target=build --label=foo=bar\")",
+	)
+
 	cmd.Flags().Bool(
 		deployFlag,
 		false,
@@ -108,16 +115,22 @@ func addBuildFlags(cmd *cobra.Command) {
 }
 
 type buildArgs struct {
-	buildArgs string
-	deploy    bool
-	noBundle  bool
-	noCache   bool
+	buildArgs             string
+	extraDockerBuildFlags string
+	deploy                bool
+	noBundle              bool
+	noCache               bool
 }
 
 func getBuildFlags(cmd *cobra.Command) (*buildArgs, error) {
 	buildArguments, err := cmd.Flags().GetString(buildArgsFlag)
 	if err != nil {
 		return nil, fmt.Errorf("invalid build arguments flag: %w", err)
+	}
+
+	extraDockerBuildFlags, err := cmd.Flags().GetString(extraDockerBuildFlagsFlag)
+	if err != nil {
+		return nil, fmt.Errorf("invalid extra docker build flags: %w", err)
 	}
 
 	deploy, err := cmd.Flags().GetBool(deployFlag)
@@ -136,10 +149,11 @@ func getBuildFlags(cmd *cobra.Command) (*buildArgs, error) {
 	}
 
 	return &buildArgs{
-		buildArgs: buildArguments,
-		deploy:    deploy,
-		noBundle:  noBundle,
-		noCache:   noCache,
+		buildArgs:             buildArguments,
+		extraDockerBuildFlags: extraDockerBuildFlags,
+		deploy:                deploy,
+		noBundle:              noBundle,
+		noCache:               noCache,
 	}, nil
 }
 
