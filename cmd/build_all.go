@@ -47,7 +47,7 @@ var buildAllCmd = &cobra.Command{
 				checkNoError(err)
 			}
 			log.Infof("building docker image for %s...", service)
-			err = docker.Build(service, baseConfig.env, actualTag, buildConfig.buildArgs, buildConfig.target, buildConfig.noCache)
+			err = docker.Build(service, baseConfig.env, actualTag, buildConfig.buildArgs, buildConfig.extraDockerBuildFlags, buildConfig.noCache)
 			checkNoError(err)
 			log.Infof("service %s built, pushing docker image...", service)
 			err = docker.Push(service, baseConfig.env, actualTag)

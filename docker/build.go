@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func Build(service config.Service, env config.Environment, tag string, buildArgs string, target string, noCache bool) error {
+func Build(service config.Service, env config.Environment, tag string, buildArgs string, extraDockerBuildFlags string, noCache bool) error {
 	imageTag := config.GetImageTag(service, tag, env)
 	log.Debugf("building image with tag %s", imageTag)
 
@@ -36,9 +36,11 @@ func Build(service config.Service, env config.Environment, tag string, buildArgs
 		}
 	}
 
-	if target != "" {
-		log.Debugf("stopping build at target %s", target)
-		cmd.Args = append(cmd.Args, "--target", target)
+	for _, flag := range strings.Split(extraDockerBuildFlags, " ") {
+		if flag != "" {
+			log.Debugf("adding extra docker build flag: %s", flag)
+			cmd.Args = append(cmd.Args, flag)
+		}
 	}
 
 	if noCache {

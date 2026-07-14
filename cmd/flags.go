@@ -10,16 +10,16 @@ import (
 )
 
 const (
-	debugFlag       = "debug"
-	tagFlag         = "tag"
-	envFlag         = "env"
-	buildArgsFlag   = "build-args"
-	targetFlag      = "target"
-	deployFlag      = "deploy"
-	noBundleFlag    = "no-bundle"
-	noCacheFlag     = "no-cache"
-	noImageTagCheck = "no-image-tag-check"
-	waitFlag        = "wait"
+	debugFlag                 = "debug"
+	tagFlag                   = "tag"
+	envFlag                   = "env"
+	buildArgsFlag             = "build-args"
+	extraDockerBuildFlagsFlag = "extra-docker-build-flags"
+	deployFlag                = "deploy"
+	noBundleFlag              = "no-bundle"
+	noCacheFlag               = "no-cache"
+	noImageTagCheck           = "no-image-tag-check"
+	waitFlag                  = "wait"
 )
 
 func addDebugFlag(cmd *cobra.Command) {
@@ -90,9 +90,9 @@ func addBuildFlags(cmd *cobra.Command) {
 	)
 
 	cmd.Flags().String(
-		targetFlag,
+		extraDockerBuildFlagsFlag,
 		"",
-		"docker build stage to stop at (--target)",
+		"extra flags to pass to docker build, space-separated (e.g. \"--target=build --label=foo=bar\")",
 	)
 
 	cmd.Flags().Bool(
@@ -115,11 +115,11 @@ func addBuildFlags(cmd *cobra.Command) {
 }
 
 type buildArgs struct {
-	buildArgs string
-	target    string
-	deploy    bool
-	noBundle  bool
-	noCache   bool
+	buildArgs             string
+	extraDockerBuildFlags string
+	deploy                bool
+	noBundle              bool
+	noCache               bool
 }
 
 func getBuildFlags(cmd *cobra.Command) (*buildArgs, error) {
@@ -128,9 +128,9 @@ func getBuildFlags(cmd *cobra.Command) (*buildArgs, error) {
 		return nil, fmt.Errorf("invalid build arguments flag: %w", err)
 	}
 
-	target, err := cmd.Flags().GetString(targetFlag)
+	extraDockerBuildFlags, err := cmd.Flags().GetString(extraDockerBuildFlagsFlag)
 	if err != nil {
-		return nil, fmt.Errorf("invalid target flag: %w", err)
+		return nil, fmt.Errorf("invalid extra docker build flags: %w", err)
 	}
 
 	deploy, err := cmd.Flags().GetBool(deployFlag)
@@ -149,11 +149,11 @@ func getBuildFlags(cmd *cobra.Command) (*buildArgs, error) {
 	}
 
 	return &buildArgs{
-		buildArgs: buildArguments,
-		target:    target,
-		deploy:    deploy,
-		noBundle:  noBundle,
-		noCache:   noCache,
+		buildArgs:             buildArguments,
+		extraDockerBuildFlags: extraDockerBuildFlags,
+		deploy:                deploy,
+		noBundle:              noBundle,
+		noCache:               noCache,
 	}, nil
 }
 
