@@ -220,6 +220,16 @@ The `--no-cache` flag adds the `--no-cache` flag to the `docker build` command:
 deploy1 build --no-cache <service 1> ...
 ```
 
+#### Stopping at a specific build stage
+
+If your Dockerfile has multiple stages, you can stop the build at a specific stage with `--target`:
+
+```bash
+deploy1 build --target <stage name> <service 1> ...
+```
+
+This is passed directly as the `--target` flag to `docker build`. If omitted, the build runs through to the last stage of the Dockerfile, as usual.
+
 ### Deploying a service
 
 You can deploy one or more services with:

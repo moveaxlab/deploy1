@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func Build(service config.Service, env config.Environment, tag string, buildArgs string, noCache bool) error {
+func Build(service config.Service, env config.Environment, tag string, buildArgs string, target string, noCache bool) error {
 	imageTag := config.GetImageTag(service, tag, env)
 	log.Debugf("building image with tag %s", imageTag)
 
@@ -34,6 +34,11 @@ func Build(service config.Service, env config.Environment, tag string, buildArgs
 			log.Debugf("adding custom build arg: %s", buildArg)
 			cmd.Args = append(cmd.Args, "--build-arg", buildArg)
 		}
+	}
+
+	if target != "" {
+		log.Debugf("stopping build at target %s", target)
+		cmd.Args = append(cmd.Args, "--target", target)
 	}
 
 	if noCache {

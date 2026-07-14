@@ -14,6 +14,7 @@ const (
 	tagFlag         = "tag"
 	envFlag         = "env"
 	buildArgsFlag   = "build-args"
+	targetFlag      = "target"
 	deployFlag      = "deploy"
 	noBundleFlag    = "no-bundle"
 	noCacheFlag     = "no-cache"
@@ -88,6 +89,12 @@ func addBuildFlags(cmd *cobra.Command) {
 		"custom build arguments for docker build",
 	)
 
+	cmd.Flags().String(
+		targetFlag,
+		"",
+		"docker build stage to stop at (--target)",
+	)
+
 	cmd.Flags().Bool(
 		deployFlag,
 		false,
@@ -109,6 +116,7 @@ func addBuildFlags(cmd *cobra.Command) {
 
 type buildArgs struct {
 	buildArgs string
+	target    string
 	deploy    bool
 	noBundle  bool
 	noCache   bool
@@ -118,6 +126,11 @@ func getBuildFlags(cmd *cobra.Command) (*buildArgs, error) {
 	buildArguments, err := cmd.Flags().GetString(buildArgsFlag)
 	if err != nil {
 		return nil, fmt.Errorf("invalid build arguments flag: %w", err)
+	}
+
+	target, err := cmd.Flags().GetString(targetFlag)
+	if err != nil {
+		return nil, fmt.Errorf("invalid target flag: %w", err)
 	}
 
 	deploy, err := cmd.Flags().GetBool(deployFlag)
@@ -137,6 +150,7 @@ func getBuildFlags(cmd *cobra.Command) (*buildArgs, error) {
 
 	return &buildArgs{
 		buildArgs: buildArguments,
+		target:    target,
 		deploy:    deploy,
 		noBundle:  noBundle,
 		noCache:   noCache,
